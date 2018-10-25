@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="openpay_acquirer_button">
+        <!--form t-if="acquirer.openpay_id" t-att-action="tx_url" method="post" target="_self"-->
+            <input type="hidden" name="data_set" t-att-data-action-url="tx_url" data-remove-me=""/>
+            <input type="hidden" name="openpay_id" t-att-value="acquirer.openpay_id"/>
+            <input type="hidden" name="reference" t-att-value="reference"/>
+            <input type="hidden" name="amount" t-att-value="amount"/>
+            <input type="hidden" name="pid" t-att-value="partner_id"/>
+            <!--button type="submit" width="100px" t-att-class="submit_class">
+                <img t-if="not submit_txt" src="/payment_openpay/static/src/img/openpay_icon.png"/>
+                <span t-if="submit_txt"><t t-esc="submit_txt"/> <span class="fa fa-long-arrow-right"/></span>
+            </button-->
+        <!--/form-->
+    </template>
+
+    <template id="assets_frontend" inherit_id="web.assets_frontend">
+        <xpath expr="link[last()]" position="after">
+            <link rel="stylesheet" href="/payment_openpay/static/src/css/openpay.css"/>
+        </xpath>
+    </template>
+
+    <template id="openpay_payment_s2s_form">
+        <t t-set="additional_title">Shop</t>
+        <t t-call="website.layout">
+                <script type="text/javascript" src="/payment_openpay/static/src/js/openpay_min.js"/>
+                <script type="text/javascript" src="/payment_openpay/static/src/js/openpay-data.js"/>
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        OpenPay.setId($('#openpay_id').val());
+                        OpenPay.setApiKey($('#openpay_apikey').val());
+                        OpenPay.setSandboxMode($('#openpay_environment').val());
+                        var deviceSessionId = OpenPay.deviceData.setup("payment-form", "deviceIdHiddenFieldName");
+                        $('#pay-button').on('click', function(event) {
+                            event.preventDefault();
+                            $("#pay-button").prop( "disabled", true);
+                            OpenPay.token.extractFormAndCreate('payment-form', sucess_callbak, error_callbak);
+                        });
+
+                        var sucess_callbak = function(response) {
+                          var token_id = response.data.id;
+                          $('#token_id').val(token_id);
+                          $('#payment-form').submit();
+                        };
+
+                        var error_callbak = function(response) {
+                            var desc = response.data.description != undefined ? response.data.description : response.message;
+                            alert("ERROR [" + response.status + "] " + desc);
+                            $("#pay-button").prop("disabled", false);
+                        };
+
+                    });
+                </script>
+
+            <div class="bkng-tb-cntnt" >
+                <div class="pymnts">
+                    <form id="payment-form" method="post" t-att-action="'/shop/openpay/validation/'">
+                        <input type="hidden" name="openpay_id" id="openpay_id" t-att-value="openpay_id"/>
+                        <input type="hidden" name="openpay_apikey" id="openpay_apikey" t-att-value="openpay_apikey"/>
+                        <input type="hidden" name="openpay_environment" id="openpay_environment" t-att-value="openpay_environment"/>
+                        <input type="hidden" name="reference" t-att-value="reference"/>
+                        <input type="hidden" name="currency" t-att-value="currency"/>
+                        <input type="hidden" name="amount" t-att-value="amount"/>
+                        <input type="hidden" name="token_id" id="token_id"/>
+
+                        <div class="pymnt-itm card active">
+                            <div class="pymnt-cntnt">
+                                <div class="card-expl">
+                                    <div class="credit"><h4>Tarjetas de crédito</h4></div>
+                                    <div class="debit"><h4>Tarjetas de débito</h4></div>
+                                </div>
+                                <div class="sctn-row">
+                                    <div class="sctn-col l">
+                                        <label>Email</label><input type="text" placeholder="Email" autocomplete="off" name="email" t-att-value="email"/>
+                                    </div>
+                                    <div class="sctn-col">
+                                        <label>TLF</label><input type="text" autocomplete="off" name="telephone" t-att-value="telephone"/>
+                                    </div>
+                                </div>
+                                <div class="sctn-row">
+
+                                    <div class="sctn-col l">
+                                        <label>Nombre del titular</label><input type="text" placeholder="Como aparece en la tarjeta" autocomplete="off" name="holder_name" data-openpay-card="holder_name" t-att-value="holder_name"/>
+                                    </div>
+                                    <div class="sctn-col">
+                                        <label>Número de tarjeta</label><input type="text" autocomplete="off" data-openpay-card="card_number" name="card_number"/>
+                                    </div>
+                                </div>
+                                <div class="sctn-row">
+                                        <div class="sctn-col l">
+                                            <label>Fecha de expiración</label>
+                                            <div class="sctn-col half l"><input type="text" placeholder="Mes" data-openpay-card="expiration_month" name="expiration_month"/></div>
+                                            <div class="sctn-col half l"><input type="text" placeholder="Año" data-openpay-card="expiration_year" name="expiration_year"/></div>
+                                        </div>
+                                        <div class="sctn-col cvv"><label>Código de seguridad</label>
+                                            <div class="sctn-col half l"><input type="text" placeholder="3 dígitos" autocomplete="off" data-openpay-card="cvv2" name="cvv2"/></div>
+                                        </div>
+                                    </div>
+                                    <div class="openpay"><div class="logo">Transacciones realizadas vía:</div>
+                                    <div class="shield">Tus pagos se realizan de forma segura con encriptación de 256 bits</div>
+                                </div>
+                                <div class="sctn-row">
+                                        <a class="button rght" id="pay-button">Pagar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
