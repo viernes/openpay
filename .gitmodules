@@ -1,4 +1,0 @@
-[submodule "viernes/openpay"]
-	path = viernes/openpay
-	url = git@github.com:viernes/openpay.git
-	branch = master
